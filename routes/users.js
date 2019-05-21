@@ -3,29 +3,30 @@ const express = require('express');
 const router = express.Router();
 
 // GET /api/users 200 - Returns the currently authenticated user
-router.get('/', (req,res) => {
+router.get('/', (req,res,next) => {
 	User.findAll()
 		.then(users => {
-			console.log(users);
-			res.json({
-				users:users
-			});
+			if(users){
+				res.json({
+					users: users
+				});
+				res.status(200);
+			}else{
+				const err = new Error('No users');
+				err.status(400);
+				next(err);
+			}
+			
 		})
-	// res.json({
-	// 	id : req.currentUser.id,
-	// 	firstNmae : req.currentUser.firstName,
-	// 	lastName : req.currentUser.lastName,
-	// 	emailAddress: req.currentUser.emailAddress
-	// });
-	res.status(200);
+		.catch(err=>{
+			res.send(500,err);
+		});
 });
 
 // POST / api / users 201 - Creates a user, sets the Location header to "/", and returns no content
 router.post('/', (req,res) => {
-	console.log(req.body);
 	User.findOne({ where: { emailAddress: req.body.emailAddress}})
 		.then(email => {
-			console.log(email);
 			if (email){
 				res.json({ error: 'This email is already in use.' });
 				res.status(400);
@@ -57,6 +58,9 @@ router.post('/', (req,res) => {
 
 			}
 		})
+		.catch(err => {
+			res.send(500,err);
+		});
 
 });
 module.exports = router;
