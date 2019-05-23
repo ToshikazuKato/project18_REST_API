@@ -21,7 +21,7 @@ router.get('/', (req,res) => {
 			res.status(200);
 		}else{
 			const err = new Error('There is no courses founded in database');
-			err.status(400);
+			err.status = 400;
 			next(400);
 		}
 		
@@ -62,6 +62,51 @@ router.get('/:id',(req,res,next) => {
 
 
 // POST / api / courses 201 - Creates a course, sets the Location header to the URI for the course, and returns no content
+router.post('/', (req,res, next)=>{
+
+	Course.findOne({where:{title : req.body.title}})
+	      .then(title => {
+			  if(title){
+				  //the same title already exists
+				  res,json({error:'The same title already exists.'});
+				  res.status(400);
+			  }else{
+				  //create
+				  const newCourseInfo = {
+					title : req.body.title,
+					description : req.body.description,
+					estimatedTime : req.body.estimatedTime,
+					materialsNeeded : req.body.materialsNeeded
+				  };
+				
+				  // set userId? foreign key
+				  newCourseInfo.userId = 2;
+
+				  Course.create(newCourseInfo)
+				  		.then(course => {
+							  console.log('Your course has been created.');
+							//   res.json(course);
+							  res.location(`/courses/${course.id}`);
+							//   res.location(`/${course.id}`);
+							  res.status(201).end();
+						})
+						.catch( err => {
+							if(err.name == "SequelizeValidationError"){
+								err.message = "Please make sure that all fields are filled correctly."
+								err.status = 400;
+							}else{
+								err.status = 400;
+								next(err);
+							}
+						})
+
+			  }
+		  })
+		  .catch( err => {
+			  res.send(500,err);
+		  })
+
+});
 // PUT / api / courses /: id 204 - Updates a course and returns no content
 // DELETE / api / courses /: id 204 - Deletes a course and returns no content
 

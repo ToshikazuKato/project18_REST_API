@@ -13,7 +13,7 @@ router.get('/', (req,res,next) => {
 				res.status(200);
 			}else{
 				const err = new Error('No users');
-				err.status(400);
+				err.status =400;
 				next(err);
 			}
 			
@@ -42,19 +42,21 @@ router.post('/', (req,res) => {
 
 				// create user
 				User.create(newUserInfo)
-					.then( (user) => {
+					.then( user => {
 						// res.json(user)
+						res.location('/');
 						res.status(201).end();
 					})
 					.catch( err => {
 						if (err.name == "SequelizeValidationError"){
 							err.message = "Please make sure that all fields are filled correctly.";
-							err.status(400);
+							err.status = 400;
 						}else{
-							err.status(400);
+							err.status = 400;
 							next(err);
 						}
 					});
+				
 
 			}
 		})
