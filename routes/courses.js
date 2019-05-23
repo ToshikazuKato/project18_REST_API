@@ -68,7 +68,7 @@ router.post('/', (req,res, next)=>{
 	      .then(title => {
 			  if(title){
 				  //the same title already exists
-				  res,json({error:'The same title already exists.'});
+				  res.json({error:'The same title already exists.'});
 				  res.status(400);
 			  }else{
 				  //create
@@ -108,7 +108,50 @@ router.post('/', (req,res, next)=>{
 
 });
 // PUT / api / courses /: id 204 - Updates a course and returns no content
+router.put('/:id', (req,res,next)=> {
+	Course.findByPk(req.params.id)
+		  .then(course => {
+			  if(course){
+				  //update
+				  course.update(req.body);
+				  res.status(204).end();
+			  }else{
+				  //err
+				  const err = new Error("Course you want to update was not found");
+				  err.status = 400;
+				  next(err);
+			  }
+		  })
+		  .catch(err => {
+			  if (err.name == "SequelizeValidationError"){
+				  err.message = "Please make sure that all fields are filled correctly."
+				  err.status = 400;
+			  }else{
+				  err.status = 400;
+				  next(err);
+			  }
+		  });
+
+});
+
 // DELETE / api / courses /: id 204 - Deletes a course and returns no content
+router.delete('/:id', (req,res,next)=> {
+	Course.findByPk(req.params.id)
+		  .then(course => {
+			  if(course){
+				  course.destroy();
+				  res.status(204).end();
+			  }else{
+				  const err = new Error('No course found');
+				  err.status = 400;
+				  next(err);
+			  }
+		  })
+		  .catch(err => {
+			  err.status =400;
+			  next(err);
+		  });
+});
 
 
 module.exports = router;
