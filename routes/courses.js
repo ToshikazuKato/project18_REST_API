@@ -27,7 +27,8 @@ router.get('/', (req,res) => {
 		
 	})
 	.catch(err => {
-		res.send(500,err);
+		res.status(500);
+		next(err);
 	});
 });
 
@@ -52,18 +53,22 @@ router.get('/:id',(req,res,next) => {
 			const err = new Error('There is no course founded by provided id');
 			err.status = 400;
 			next(err);
-
 		}
 	})
 	.catch(err => {
-		res.send(500,err);
+		res.status(500);
+		next(500);
 	});
 });
 
 
 // POST / api / courses 201 - Creates a course, sets the Location header to the URI for the course, and returns no content
 router.post('/', (req,res, next)=>{
-
+	if (!req.body.title || !req.body.description) {
+		const err = new Error("Title and Description are required.");
+		err.status = 400;
+		next(err);
+	} 
 	Course.findOne({where:{title : req.body.title}})
 	      .then(title => {
 			  if(title){
@@ -96,19 +101,25 @@ router.post('/', (req,res, next)=>{
 								err.status = 400;
 							}else{
 								err.status = 400;
-								next(err);
 							}
+							next(err);
 						})
 
 			  }
 		  })
 		  .catch( err => {
-			  res.send(500,err);
+			  res.status(500);
+			  next(err);
 		  })
 
 });
 // PUT / api / courses /: id 204 - Updates a course and returns no content
 router.put('/:id', (req,res,next)=> {
+	if (!req.body.title || !req.body.description) {
+		const err = new Error ("Title and Description are required.");
+		err.status = 400;
+	    next(err);
+	} 
 	Course.findByPk(req.params.id)
 		  .then(course => {
 			  if(course){
@@ -128,8 +139,9 @@ router.put('/:id', (req,res,next)=> {
 				  err.status = 400;
 			  }else{
 				  err.status = 400;
-				  next(err);
 			  }
+			  next(err);
+
 		  });
 
 });
