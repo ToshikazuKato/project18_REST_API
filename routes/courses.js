@@ -3,14 +3,21 @@ const User = require('../models').User;
 const express = require('express');
 const Sequelize = require('sequelize');
 const router = express.Router();
+const authUser = require("./login");
 
 // GET / api / courses 200 - Returns a list of courses(including the user that owns each course)
 router.get('/', (req,res) => {
 	Course.findAll({
 		include:[{
 			model:User,
-			where:{ id: Sequelize.col('course.userId') }
-		}]
+			where:{ id: Sequelize.col('course.userId') },
+			attributes: {
+				exclude: ['password','createdAt', 'updatedAt']
+			}
+		}],
+		attributes: {
+			exclude: ['createdAt', 'updatedAt']
+		}
 	})
 	.then(courses => {
 		// console.log(courses,'courses');
@@ -39,7 +46,13 @@ router.get('/:id',(req,res,next) => {
 	Course.findByPk(req.params.id,{
 		include:{
 			model:User,
-			where:{id:Sequelize.col('course.userId')}
+			where:{id:Sequelize.col('course.userId')},
+			attributes: {
+				exclude: ['createdAt', 'updatedAt','password']
+			}
+		},
+		attributes: {
+			exclude: ['createdAt', 'updatedAt']
 		}
 	})
 	.then(course => {
@@ -63,7 +76,7 @@ router.get('/:id',(req,res,next) => {
 
 
 // POST / api / courses 201 - Creates a course, sets the Location header to the URI for the course, and returns no content
-router.post('/', (req,res, next)=>{
+router.post('/', authUser ,(req,res, next)=>{
 	if (!req.body.title || !req.body.description) {
 		const err = new Error("Title and Description are required.");
 		err.status = 400;
@@ -91,7 +104,7 @@ router.post('/', (req,res, next)=>{
 				  		.then(course => {
 							  console.log('Your course has been created.');
 							//   res.json(course);
-							  res.location(`/courses/${course.id}`);
+							  res.location(`/api//courses/${course.id}`);
 							//   res.location(`/${course.id}`);
 							  res.status(201).end();
 						})
@@ -114,18 +127,27 @@ router.post('/', (req,res, next)=>{
 
 });
 // PUT / api / courses /: id 204 - Updates a course and returns no content
-router.put('/:id', (req,res,next)=> {
+router.put('/:id', authUser ,(req,res,next)=> {
+	
 	if (!req.body.title || !req.body.description) {
 		const err = new Error ("Title and Description are required.");
 		err.status = 400;
 	    next(err);
 	} 
-	Course.findByPk(req.params.id)
+	Course.findByPk(req.body.id)	
 		  .then(course => {
 			  if(course){
 				  //update
-				  course.update(req.body);
-				  res.status(204).end();
+				  if (req.authOkUser.id === course.userId){
+					  course.update(req.body);
+					  res.status(204).end();
+				  }else{
+					  //err
+					  const err = new Error("Course can not be updated becasue you don't own this course. ");
+					  err.status = 403;
+					  next(err);
+				  }
+				  
 			  }else{
 				  //err
 				  const err = new Error("Course you want to update was not found");
@@ -147,12 +169,21 @@ router.put('/:id', (req,res,next)=> {
 });
 
 // DELETE / api / courses /: id 204 - Deletes a course and returns no content
-router.delete('/:id', (req,res,next)=> {
+router.delete('/:id',authUser ,(req,res,next)=> {
 	Course.findByPk(req.params.id)
 		  .then(course => {
 			  if(course){
-				  course.destroy();
-				  res.status(204).end();
+				
+				  if (req.authOkUser.id === course.userId) {
+					  course.destroy();
+					  res.status(204).end();
+				  } else {
+					  //err
+					  const err = new Error("You can only delete own your course.");
+					  err.status = 403;
+					  next(err);
+				  }
+				  
 			  }else{
 				  const err = new Error('No course found');
 				  err.status = 400;

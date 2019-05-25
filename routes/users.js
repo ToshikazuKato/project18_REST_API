@@ -2,12 +2,14 @@ const User = require('../models').User;
 const express = require('express');
 const router = express.Router();
 const bcryptjs = require("bcryptjs");
+const authUser = require("./login");
 
 // GET /api/users 200 - Returns the currently authenticated user
-router.get('/', (req,res,next) => {
+router.get('/', authUser ,(req,res) => {
+	
 	User.findAll({
 		attributes:{
-			exclude:['password']
+			exclude: ['password', 'createdAt','updatedAt']
 		}
 	})
 	.then(users => {
@@ -19,7 +21,8 @@ router.get('/', (req,res,next) => {
 		}else{
 			const err = new Error('No users');
 			err.status =400;
-			next(err);
+			// next(err);
+			res.send(err);
 		}
 		
 	})
@@ -37,6 +40,14 @@ router.post('/', (req,res,next) => {
 		err.status = 400;
 		next(err);
 	} 
+	const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+	if(!emailRegex.test(req.body.emailAddress)){
+		const err = new Error("emailAddress is not valid.");
+		err.status = 400;
+		next(err);
+	}
+
 	User.findOne({ where: { emailAddress: req.body.emailAddress}})
 		.then(email => {
 			if (email){
@@ -84,4 +95,5 @@ router.post('/', (req,res,next) => {
 		});
 
 });
+
 module.exports = router;
