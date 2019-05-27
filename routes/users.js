@@ -6,8 +6,8 @@ const authUser = require("./login");
 
 // GET /api/users 200 - Returns the currently authenticated user
 router.get('/', authUser ,(req,res) => {
-	
-	User.findAll({
+	User.findOne({
+		where:{id:req.authOkUser.id},
 		attributes:{
 			exclude: ['password', 'createdAt','updatedAt']
 		}

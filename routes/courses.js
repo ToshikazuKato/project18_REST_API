@@ -94,11 +94,12 @@ router.post('/', authUser ,(req,res, next)=>{
 					title : req.body.title,
 					description : req.body.description,
 					estimatedTime : req.body.estimatedTime,
-					materialsNeeded : req.body.materialsNeeded
+					materialsNeeded : req.body.materialsNeeded,
+					 // set userId? foreign key
+				  	userId : req.authOkUser.id	
 				  };
 				
-				  // set userId? foreign key
-				  newCourseInfo.userId = 2;
+				 
 
 				  Course.create(newCourseInfo)
 				  		.then(course => {
