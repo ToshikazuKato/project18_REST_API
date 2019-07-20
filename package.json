@@ -20,9 +20,10 @@
     "cross-env": "^5.2.0",
     "express": "^4.17.0",
     "express-generator": "^4.16.1",
+    "lodash.update": "^4.10.2",
     "morgan": "^1.9.0",
     "promise.prototype.finally": "^3.1.0",
-    "sequelize": "^5.8.6",
+    "sequelize": "^6.0.0",
     "sqlite3": "^4.0.8"
   }
 }
