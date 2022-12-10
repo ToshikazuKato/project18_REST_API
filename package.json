@@ -18,7 +18,7 @@
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.4",
     "cross-env": "^5.2.0",
-    "express": "^4.17.0",
+    "express": "^4.17.3",
     "express-generator": "^4.16.1",
     "lodash.update": "^4.10.2",
     "morgan": "^1.9.0",
